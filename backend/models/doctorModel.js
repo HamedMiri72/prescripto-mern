@@ -26,7 +26,7 @@ const doctorSchema = new mongoose.Schema({
     },
     degree:{
         type: String,
-        required: tue
+        required: true
     },
     experience:{
         type: String,

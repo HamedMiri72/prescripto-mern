@@ -2,6 +2,7 @@ import express from "express"
 import "dotenv/config"
 import cors from "cors"
 import connectDB from "./config/mongodb.js";
+import adminRouter from "./routes/adminRoute.js";
 
 
 // app cofig
@@ -21,8 +22,7 @@ app.use(cors());
 
 // api endPoint
 
-app.get("/", (req, res) => {
-    res.send("Api is working correctly")
-})
+app.use("/api/admin", adminRouter)
+
 
 app.listen(port, () => console.log("App is running on port: ", port));
