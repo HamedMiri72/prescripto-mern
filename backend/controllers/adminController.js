@@ -78,21 +78,21 @@ export const addDoctor = async(req, res) => {
 
 //API FOR ADMIN LOGIN
 
-export const adminLogin = async(req,res) => {
+export const adminLogin = async (req, res) => {
 
   const {email, password} = req.body;
-  try{
 
+  try{
     if(email !== process.env.ADMIN_EMAIL || password !== process.env.ADMIN_PASSWORD){
-      return res.status(403).json({
-        succes: false,
-        message: "unathoritised"
+      return res.status(400).json({
+        success: false,
+        message: "ivalid credentials"
       })
     }
 
-    const token = jwt.sign({email},process.env.JWT_SECRET, {
+    const token = jwt.sign({email}, process.env.JWT_SECRET, {
       expiresIn: "7d"
-    })
+    });
 
     return res.status(200).json({
       success: true,
@@ -102,8 +102,8 @@ export const adminLogin = async(req,res) => {
   }catch(error){
     console.log("Error server:: ", error.message);
     return res.status(500).json({
-      succes: true,
-      message: "Error in admin login method in admin controller"
+      success: false,
+      message: "Error in admin login"
     })
   }
 }
