@@ -2,6 +2,7 @@ import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcrypt";
 import validator from "validator"
 import {v2 as cloudinary} from "cloudinary"
+import jwt from "jsonwebtoken"
 
 
 
@@ -71,5 +72,38 @@ export const addDoctor = async(req, res) => {
 
     })
 
+  }
+}
+
+
+//API FOR ADMIN LOGIN
+
+export const adminLogin = async(req,res) => {
+
+  const {email, password} = req.body;
+  try{
+
+    if(email !== process.env.ADMIN_EMAIL || password !== process.env.ADMIN_PASSWORD){
+      return res.status(403).json({
+        succes: false,
+        message: "unathoritised"
+      })
+    }
+
+    const token = jwt.sign({email},process.env.JWT_SECRET, {
+      expiresIn: "7d"
+    })
+
+    return res.status(200).json({
+      success: true,
+      token
+    })
+
+  }catch(error){
+    console.log("Error server:: ", error.message);
+    return res.status(500).json({
+      succes: true,
+      message: "Error in admin login method in admin controller"
+    })
   }
 }
