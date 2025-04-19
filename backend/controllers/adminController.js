@@ -1,83 +1,75 @@
 import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcrypt";
+import validator from "validator"
+import {v2 as cloudinary} from "cloudinary"
 
-export const addDoctor = async (req, res) => {
-  const {
-    name,
-    email,
-    password,
-    speciality,
-    degree,
-    experience,
-    about,
-    fees,
-    address,
-  } = req.body;
 
-  // Corrected to use imageFile, which is defined correctly
-  const image = req.file?.filename;
 
-  console.log({ name, email, password, speciality, degree, experience, about, fees, address }, image);
+export const addDoctor = async(req, res) => {
 
-  try {
-    // Checking if required fields are present
-    if (
-      !name ||
-      !email ||
-      !password ||
-      !image ||  // Make sure image is being passed correctly
-      !speciality ||
-      !degree ||
-      !experience ||
-      !about ||
-      !fees ||
-      !address
-    ) {
+  const {name, email, password, speciality, degree, experience, about, fees, address} = req.body;
+  const imageFile = req.file;
+
+  try{
+
+    //checking all data to add doctor
+    if(!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address){
       return res.status(400).json({
         success: false,
-        message: "All fields including image are required",
-      });
+        message: "Missing details"
+      })
     }
 
-    // Checking if doctor with this email already exists
-    const existingDoctor = await doctorModel.findOne({ email });
-    if (existingDoctor) {
-      return res.status(409).json({
+    //validating email format
+    if(!validator.isEmail(email)){
+      return res.status(400).json({
         success: false,
-        message: "Doctor already exists",
-      });
+        message: "please enter a valid email"
+      })
     }
 
-    // Hashing password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // validating strong password
+    if(password.length < 8){
+      return res.json({success:false, message: "Please Enter a strong password"})
+    }
 
-    // Create a new doctor record
+    //hashing doctor password
+    const hashedPassword = await bcrypt.hash(password, 12)
+
+    // upload image to cloudinary
+    const imageUploaded = await cloudinary.uploader.upload(imageFile.path, {resource_type: "image", folder: "doctors"})
+    const imageUrl = imageUploaded.secure_url
+
     const newDoctor = await doctorModel.create({
       name,
       email,
+      image: imageUrl,
       password: hashedPassword,
-      image,  // Here, we are using imageFile (which is `req.file?.filename`)
       speciality,
       degree,
       experience,
-      about,
       fees,
-      address,
-      available: true,
+      about,
+      address: JSON.parse(address),
+      available: true
     });
-
-    const { password: _, ...doctorWithoutPassword } = newDoctor.toObject();  // Removing password from the response
 
     return res.status(201).json({
-      success: true,
-      message: "Doctor created successfully",
-      doctor: doctorWithoutPassword,
+      succes: true,
+      message: "Docter has been crated",
+      doctor: {
+        ...newDoctor._doc,
+        password: undefined
+      },
     });
-  } catch (error) {
-    console.error("Error creating doctor:", error.message);
+  }catch(error){
+
+    console.log("Error server: ", error.message);
     return res.status(500).json({
       success: false,
-      message: "Server error while creating doctor",
-    });
+      message: "Error in add-doctor in admincontroller"
+
+    })
+
   }
-};
+}

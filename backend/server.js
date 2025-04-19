@@ -1,28 +1,25 @@
 import express from "express"
 import "dotenv/config"
+import connectDB from "./config/mongodb.js"
 import cors from "cors"
-import connectDB from "./config/mongodb.js";
 import adminRouter from "./routes/adminRoute.js";
+import connectCloudinary from "./config/cloudinary.js";
 
 
-// app cofig
+//app config
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 4000
 connectDB();
+connectCloudinary();
 
 
+//middleware
+app.use(express.json())    // -> req.body
+app.use(cors())
 
-// middlware
-
-app.use(express.json());
-app.use(cors());
-
-
-
-// api endPoint
-
+// api endpoint
 app.use("/api/admin", adminRouter)
 
 
-app.listen(port, () => console.log("App is running on port: ", port));
+app.listen(port, () => console.log("App is running on port:: ", port))
